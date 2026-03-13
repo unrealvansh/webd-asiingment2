@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Async Weather Tracker</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg,#1f2a5a,#2d3f8f);
+  color: #222;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  color: white;
+}
+
+.card {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 10px 0;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+input {
+  flex: 1;
+  padding: 8px;
+}
+
+button {
+  padding: 8px 15px;
+  background: #ff7a18;
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.history button {
+  margin: 3px;
+  background: #ddd;
+  color: #333;
+}
+
+.log {
+  background: #0d1b4c;
+  color: #7fff7f;
+  font-family: monospace;
+  height: 120px;
+  overflow-y: auto;
+  padding: 10px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+  <h1>Async Weather Tracker</h1>
+
+  <div class="row">
+    <div class="card" style="flex:1">
+      <h3>Search City</h3>
+      <input id="cityInput" placeholder="Enter city name"/>
+      <button onclick="handleSearch()">Search</button>
+
+      <h4>Search History</h4>
+      <div id="history" class="history"></div>
+    </div>
+
+    <div class="card" style="flex:1">
+      <h3>Weather Info</h3>
+      <div id="weatherResult">No data</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Console — Event Loop</h3>
+    <div id="log" class="log"></div>
+  </div>
+</div>
+
+<script>
+const API_KEY = "YOUR_API_KEY"; // put OpenWeather key
+const logBox = document.getElementById("log");
+const historyBox = document.getElementById("history");
+const weatherBox = document.getElementById("weatherResult");
+
+function log(msg){
+  console.log(msg);
+  logBox.innerHTML += msg + "<br>";
+  logBox.scrollTop = logBox.scrollHeight;
+}
+
+// Load history on start
+window.onload = () => {
+  loadHistory();
+  log("[SYNC] Page loaded");
+};
+
+function saveCity(city){
+  let cities = JSON.parse(localStorage.getItem("cities")) || [];
+  if(!cities.includes(city)){
+    cities.push(city);
+    localStorage.setItem("cities", JSON.stringify(cities));
+  }
+  loadHistory();
+}
+
+function loadHistory(){
+  historyBox.innerHTML = "";
+  let cities = JSON.parse(localStorage.getItem("cities")) || [];
+  cities.forEach(c=>{
+    let btn = document.createElement("button");
+    btn.textContent = c;
+    btn.onclick = ()=>fetchWeather(c);
+    historyBox.appendChild(btn);
+  });
+}
+
+function handleSearch(){
+  const city = document.getElementById("cityInput").value.trim();
+  if(!city){
+    weatherBox.innerHTML = " Enter city";
+    return;
+  }
+  fetchWeather(city);
+}
+
+// async/await weather fetch
+async function fetchWeather(city){
+  log("[SYNC] Start fetch for "+city);
+  weatherBox.innerHTML = "Loading...";
+
+  try{
+    const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`;
+
+    log("[ASYNC] Before fetch");
+    const response = await fetch(url);
+    log("[ASYNC] After fetch");
+
+    if(!response.ok){
+      throw new Error("City not found");
+    }
+
+    const data = await response.json();
+    log("[MICROTASK] JSON parsed");
+
+    showWeather(data);
+    saveCity(city);
+
+  }catch(err){
+    weatherBox.innerHTML = " " + err.message;
+    log("[ERROR] "+err.message);
+  }
+
+  log("[SYNC] Fetch function end");
+}
+
+// display
+function showWeather(data){
+  weatherBox.innerHTML = `
+    <b>City:</b> ${data.name}<br>
+    <b>Temp:</b> ${data.main.temp} °C<br>
+    <b>Weather:</b> ${data.weather[0].main}<br>
+    <b>Humidity:</b> ${data.main.humidity}%<br>
+    <b>Wind:</b> ${data.wind.speed} m/s
+  `;
+}
+</script>
+</body>
+</html>
