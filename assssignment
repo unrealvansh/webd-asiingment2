@@ -74,7 +74,7 @@ button:hover {
 
 <body>
 <div class="container">
-  <h1>Async Weather Tracker</h1>
+  <h1>🌤️ Async Weather Tracker</h1>
 
   <div class="row">
     <div class="card" style="flex:1">
@@ -99,7 +99,7 @@ button:hover {
 </div>
 
 <script>
-const API_KEY = "YOUR_API_KEY"; // put OpenWeather key
+const API_KEY = "d1b268b3ec0ab5153665dd631815d58a"; // put OpenWeather key
 const logBox = document.getElementById("log");
 const historyBox = document.getElementById("history");
 const weatherBox = document.getElementById("weatherResult");
@@ -110,7 +110,6 @@ function log(msg){
   logBox.scrollTop = logBox.scrollHeight;
 }
 
-// Load history on start
 window.onload = () => {
   loadHistory();
   log("[SYNC] Page loaded");
@@ -139,13 +138,12 @@ function loadHistory(){
 function handleSearch(){
   const city = document.getElementById("cityInput").value.trim();
   if(!city){
-    weatherBox.innerHTML = " Enter city";
+    weatherBox.innerHTML = "⚠️ Enter city";
     return;
   }
   fetchWeather(city);
 }
 
-// async/await weather fetch
 async function fetchWeather(city){
   log("[SYNC] Start fetch for "+city);
   weatherBox.innerHTML = "Loading...";
@@ -168,14 +166,13 @@ async function fetchWeather(city){
     saveCity(city);
 
   }catch(err){
-    weatherBox.innerHTML = " " + err.message;
+    weatherBox.innerHTML = "❌ " + err.message;
     log("[ERROR] "+err.message);
   }
 
   log("[SYNC] Fetch function end");
 }
 
-// display
 function showWeather(data){
   weatherBox.innerHTML = `
     <b>City:</b> ${data.name}<br>
